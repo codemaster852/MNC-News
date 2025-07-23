@@ -35,8 +35,11 @@
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center mb-8">
-            <h2 class="text-2xl font-bold text-gray-900">Manage News</h2>
-            <button id="add-news-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Add News</button>
+            <h2 class="text-2xl font-bold text-gray-900">Manage Content</h2>
+            <div class="space-x-2">
+                <button id="manage-categories-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Manage Categories</button>
+                <button id="add-news-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Add News</button>
+            </div>
         </div>
 
         <!-- News Table -->
@@ -76,12 +79,7 @@
                     <div class="mb-4">
                         <label for="category" class="block text-gray-700 text-sm font-bold mb-2">Category</label>
                         <select id="category" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
-                            <option value="Technology">Technology</option>
-                            <option value="Politics">Politics</option>
-                            <option value="Sports">Sports</option>
-                            <option value="Business">Business</option>
-                            <option value="Entertainment">Entertainment</option>
-                            <option value="World">World</option>
+                            <!-- Categories will be populated dynamically -->
                         </select>
                     </div>
                     <div class="mb-4">
@@ -110,22 +108,101 @@
         </div>
     </div>
 
+    <!-- Category Management Modal -->
+    <div id="category-modal" class="modal fixed inset-0 bg-gray-800 bg-opacity-75 items-center justify-center">
+        <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/3 p-8">
+            <h2 class="text-2xl font-bold mb-4">Manage Categories</h2>
+            <div id="category-list" class="mb-4 max-h-60 overflow-y-auto">
+                <!-- Category list will be populated here -->
+            </div>
+            <form id="category-form" class="flex space-x-2">
+                <input type="text" id="new-category-name" placeholder="New category name" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
+                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Add</button>
+            </form>
+            <div class="flex justify-end mt-6">
+                <button type="button" id="close-category-modal-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const SUPABASE_URL = 'https://lbgnjyktvoxpqeoqagca.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxiZ25qeWt0dm94cHFlb3FhZ2NhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxODMzMTcsImV4cCI6MjA2ODc1OTMxN30.K2DMHYwwZfjKIsgu7OkxuXiRiuvrVF45uiX6WD9RcXU';
         const GEMINI_API_KEY = 'AIzaSyCiTLSV1s3oMog3jriH_TPIOJshhygTrAc';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // DOM Elements
         const newsTableBody = document.getElementById('news-table-body');
         const addNewsBtn = document.getElementById('add-news-btn');
         const newsModal = document.getElementById('news-modal');
-        const modalTitle = document.getElementById('modal-title');
         const newsForm = document.getElementById('news-form');
         const cancelBtn = document.getElementById('cancel-btn');
         const logoutBtn = document.getElementById('logout-btn');
         const generateDescBtn = document.getElementById('generate-desc-btn');
+        const manageCategoriesBtn = document.getElementById('manage-categories-btn');
+        const categoryModal = document.getElementById('category-modal');
+        const categoryList = document.getElementById('category-list');
+        const categoryForm = document.getElementById('category-form');
+        const closeCategoryModalBtn = document.getElementById('close-category-modal-btn');
+        const categoryDropdown = document.getElementById('category');
 
-        // Fetch and display news
+        // --- Category Management ---
+
+        async function loadCategories() {
+            const { data, error } = await supabase.from('categories').select('*').order('name');
+            if (error) {
+                console.error("Error loading categories:", error);
+                return;
+            }
+
+            // Populate category list in management modal
+            categoryList.innerHTML = '';
+            data.forEach(cat => {
+                const catElement = document.createElement('div');
+                catElement.className = 'flex justify-between items-center p-2 border-b';
+                catElement.innerHTML = `
+                    <span>${cat.name}</span>
+                    <button onclick="deleteCategory('${cat.id}')" class="text-red-500 hover:text-red-700 text-sm">Delete</button>
+                `;
+                categoryList.appendChild(catElement);
+            });
+
+            // Populate category dropdown in news form
+            categoryDropdown.innerHTML = '';
+            data.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.name;
+                option.textContent = cat.name;
+                categoryDropdown.appendChild(option);
+            });
+        }
+
+        async function addCategory(name) {
+            if (!name) return;
+            const { error } = await supabase.from('categories').insert([{ name: name }]);
+            if (error) {
+                console.error("Error adding category:", error);
+                alert(`Could not add category. It might already exist.`);
+            } else {
+                document.getElementById('new-category-name').value = '';
+                await loadCategories(); // Refresh list
+            }
+        }
+
+        async function deleteCategory(id) {
+            if (window.confirm('Are you sure you want to delete this category?')) {
+                const { error } = await supabase.from('categories').delete().eq('id', id);
+                if (error) {
+                    console.error("Error deleting category:", error);
+                    alert('Could not delete category.');
+                } else {
+                    await loadCategories(); // Refresh list
+                }
+            }
+        }
+
+        // --- News Management ---
+
         async function loadNews() {
             const { data, error } = await supabase
                 .from('news')
@@ -141,21 +218,15 @@
             data.forEach(news => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                        <p class="text-gray-900 whitespace-no-wrap">${news.title}</p>
-                    </td>
+                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm"><p class="text-gray-900 whitespace-no-wrap">${news.title}</p></td>
                     <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                         <span class="relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight">
                             <span aria-hidden class="absolute inset-0 bg-green-200 opacity-50 rounded-full"></span>
                             <span class="relative">${news.category || 'N/A'}</span>
                         </span>
                     </td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                        <p class="text-gray-900 whitespace-no-wrap">${news.writer_name || 'N/A'}</p>
-                    </td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                        <p class="text-gray-900 whitespace-no-wrap">${news.publication_date ? new Date(news.publication_date).toLocaleDateString() : 'N/A'}</p>
-                    </td>
+                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm"><p class="text-gray-900 whitespace-no-wrap">${news.writer_name || 'N/A'}</p></td>
+                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm"><p class="text-gray-900 whitespace-no-wrap">${news.publication_date ? new Date(news.publication_date).toLocaleDateString() : 'N/A'}</p></td>
                     <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                         <button onclick="editNews('${news.id}')" class="text-indigo-600 hover:text-indigo-900 mr-4">Edit</button>
                         <button onclick="deleteNews('${news.id}')" class="text-red-600 hover:text-red-900">Delete</button>
@@ -165,12 +236,11 @@
             });
         }
 
-        // Show modal for adding/editing news
-        function showModal(news = null) {
+        function showNewsModal(news = null) {
             newsForm.reset();
-            document.getElementById('publication_date').value = new Date().toISOString().split('T')[0]; // Default to today
+            document.getElementById('publication_date').value = new Date().toISOString().split('T')[0];
             if (news) {
-                modalTitle.textContent = 'Edit News';
+                document.getElementById('modal-title').textContent = 'Edit News';
                 document.getElementById('news-id').value = news.id;
                 document.getElementById('title').value = news.title;
                 document.getElementById('writer_name').value = news.writer_name;
@@ -180,18 +250,16 @@
                 document.getElementById('content').value = news.content;
                 document.getElementById('image_url').value = news.image_url;
             } else {
-                modalTitle.textContent = 'Add News';
+                document.getElementById('modal-title').textContent = 'Add News';
                 document.getElementById('news-id').value = '';
             }
             newsModal.classList.add('active');
         }
 
-        // Hide modal
-        function hideModal() {
+        function hideNewsModal() {
             newsModal.classList.remove('active');
         }
 
-        // Handle form submission
         newsForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const newsData = {
@@ -205,42 +273,36 @@
             };
             const newsId = document.getElementById('news-id').value;
 
-            let result;
-            if (newsId) {
-                result = await supabase.from('news').update(newsData).eq('id', newsId);
-            } else {
-                result = await supabase.from('news').insert([newsData]);
-            }
-
-            if (result.error) {
-                console.error('Error saving news:', result.error);
+            const { error } = newsId
+                ? await supabase.from('news').update(newsData).eq('id', newsId)
+                : await supabase.from('news').insert([newsData]);
+            
+            if (error) {
+                console.error('Error saving news:', error);
                 alert('Could not save news.');
             } else {
-                hideModal();
-                loadNews();
+                hideNewsModal();
+                await loadNews();
             }
         });
         
-        // Edit news
         async function editNews(id) {
             const { data, error } = await supabase.from('news').select('*').eq('id', id).single();
             if (error) { console.error('Error fetching news for edit:', error); return; }
-            showModal(data);
+            showNewsModal(data);
         }
 
-        // Delete news
         async function deleteNews(id) {
             if (window.confirm('Are you sure you want to delete this news article?')) {
                 const { error } = await supabase.from('news').delete().eq('id', id);
                 if (error) { console.error('Error deleting news:', error); alert('Could not delete news.'); } 
-                else { loadNews(); }
+                else { await loadNews(); }
             }
         }
 
-        // Generate description with Gemini
         generateDescBtn.addEventListener('click', async () => {
             const content = document.getElementById('content').value;
-            if (!content) { alert('Please enter some content first to generate a description.'); return; }
+            if (!content) { alert('Please enter some content first.'); return; }
             
             generateDescBtn.disabled = true;
             generateDescBtn.textContent = 'Generating...';
@@ -252,7 +314,7 @@
                     body: JSON.stringify({ contents: [{ parts: [{ text: `Write a short, compelling news summary (about 2-3 sentences) for the following article content:\n\n${content}` }] }] })
                 });
 
-                if (!response.ok) { throw new Error(`API request failed with status ${response.status}`); }
+                if (!response.ok) { throw new Error(`API request failed: ${response.status}`); }
 
                 const result = await response.json();
                 const description = result.candidates[0].content.parts[0].text;
@@ -260,23 +322,34 @@
 
             } catch (error) {
                 console.error('Error with Gemini API:', error);
-                alert('Failed to generate description. Please check the console for details.');
+                alert('Failed to generate description.');
             } finally {
                 generateDescBtn.disabled = false;
                 generateDescBtn.textContent = 'Generate with Gemini';
             }
         });
 
-        // Event listeners
-        addNewsBtn.addEventListener('click', () => showModal());
-        cancelBtn.addEventListener('click', hideModal);
+        // --- Event Listeners ---
+        addNewsBtn.addEventListener('click', () => showNewsModal());
+        cancelBtn.addEventListener('click', hideNewsModal);
         logoutBtn.addEventListener('click', () => {
             localStorage.removeItem('mnc-admin-auth');
             window.location.href = './index.html';
         });
+        manageCategoriesBtn.addEventListener('click', () => categoryModal.classList.add('active'));
+        closeCategoryModalBtn.addEventListener('click', () => categoryModal.classList.remove('active'));
+        categoryForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newName = document.getElementById('new-category-name').value.trim();
+            addCategory(newName);
+        });
 
-        // Initial load
-        loadNews();
+        // --- Initial Load ---
+        async function initialize() {
+            await loadCategories();
+            await loadNews();
+        }
+        initialize();
     </script>
 </body>
 </html>
