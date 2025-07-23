@@ -11,119 +11,52 @@
         body { font-family: 'Inter', sans-serif; }
         .modal { display: none; }
         .modal.active { display: flex; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab.active { border-color: #4f46e5; color: #4f46e5; }
     </style>
 </head>
 <body class="bg-gray-100">
 
     <!-- Auth Check -->
-    <script>
-        if (!localStorage.getItem('mnc-admin-auth')) {
-            window.location.href = './index.html';
-        }
-    </script>
+    <script>if (!localStorage.getItem('mnc-admin-auth')) { window.location.href = './index.html'; }</script>
 
     <!-- Navigation -->
-    <nav class="bg-gray-800 text-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <h1 class="text-xl font-bold">MNC Admin Panel</h1>
-                <button id="logout-btn" class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded-md text-sm font-medium">Logout</button>
-            </div>
-        </div>
-    </nav>
+    <nav class="bg-gray-800 text-white"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="flex justify-between items-center h-16"><h1 class="text-xl font-bold">MNC Admin Panel</h1><button id="logout-btn" class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded-md text-sm font-medium">Logout</button></div></div></nav>
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center mb-8">
-            <h2 class="text-2xl font-bold text-gray-900">Manage Content</h2>
-            <div class="space-x-2">
-                <button id="manage-categories-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Manage Categories</button>
-                <button id="add-news-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Add News</button>
-            </div>
+        <!-- Tabs -->
+        <div class="mb-8 border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                <button id="tab-news" class="tab active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Manage News</button>
+                <button id="tab-comments" class="tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700">Manage Comments</button>
+            </nav>
         </div>
 
-        <!-- News Table -->
-        <div class="bg-white shadow-md rounded-lg overflow-x-auto">
-            <table class="min-w-full leading-normal">
-                <thead>
-                    <tr>
-                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Title</th>
-                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Category</th>
-                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Writer</th>
-                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
-                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="news-table-body">
-                    <!-- News rows will be inserted here -->
-                </tbody>
-            </table>
+        <!-- News Management Tab -->
+        <div id="content-news" class="tab-content active">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl font-bold text-gray-900">News Articles</h2>
+                <div class="space-x-2">
+                    <button id="manage-categories-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Manage Categories</button>
+                    <button id="add-news-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Add News</button>
+                </div>
+            </div>
+            <div class="bg-white shadow-md rounded-lg overflow-x-auto"><table class="min-w-full leading-normal"><thead><tr><th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Title</th><th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Category</th><th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Writer</th><th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th><th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th></tr></thead><tbody id="news-table-body"></tbody></table></div>
+        </div>
+
+        <!-- Comments Management Tab -->
+        <div id="content-comments" class="tab-content">
+            <h2 class="text-2xl font-bold text-gray-900 mb-8">User Comments</h2>
+            <div id="comments-container" class="space-y-6"></div>
         </div>
     </div>
 
-    <!-- Add/Edit News Modal -->
-    <div id="news-modal" class="modal fixed inset-0 bg-gray-800 bg-opacity-75 items-center justify-center">
-        <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-2/3 lg:w-1/2 max-h-screen overflow-y-auto p-8">
-            <h2 id="modal-title" class="text-2xl font-bold mb-4">Add News</h2>
-            <form id="news-form">
-                <input type="hidden" id="news-id">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="mb-4">
-                        <label for="title" class="block text-gray-700 text-sm font-bold mb-2">Title</label>
-                        <input type="text" id="title" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
-                    </div>
-                    <div class="mb-4">
-                        <label for="writer_name" class="block text-gray-700 text-sm font-bold mb-2">Writer Name</label>
-                        <input type="text" id="writer_name" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
-                    </div>
-                    <div class="mb-4">
-                        <label for="category" class="block text-gray-700 text-sm font-bold mb-2">Category</label>
-                        <select id="category" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
-                            <!-- Categories will be populated dynamically -->
-                        </select>
-                    </div>
-                    <div class="mb-4">
-                        <label for="publication_date" class="block text-gray-700 text-sm font-bold mb-2">Publication Date</label>
-                        <input type="date" id="publication_date" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
-                    </div>
-                </div>
-                 <div class="mb-4">
-                    <label for="short_description" class="block text-gray-700 text-sm font-bold mb-2">Short Description</label>
-                    <textarea id="short_description" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"></textarea>
-                    <button type="button" id="generate-desc-btn" class="mt-2 bg-blue-500 hover:bg-blue-600 text-white text-sm py-1 px-3 rounded">Generate with Gemini</button>
-                </div>
-                <div class="mb-4">
-                    <label for="content" class="block text-gray-700 text-sm font-bold mb-2">Content</label>
-                    <textarea id="content" rows="10" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"></textarea>
-                </div>
-                <div class="mb-4">
-                    <label for="image_url" class="block text-gray-700 text-sm font-bold mb-2">Image URL</label>
-                    <input type="url" id="image_url" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
-                </div>
-                <div class="flex justify-end space-x-4">
-                    <button type="button" id="cancel-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Cancel</button>
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Category Management Modal -->
-    <div id="category-modal" class="modal fixed inset-0 bg-gray-800 bg-opacity-75 items-center justify-center">
-        <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/3 p-8">
-            <h2 class="text-2xl font-bold mb-4">Manage Categories</h2>
-            <div id="category-list" class="mb-4 max-h-60 overflow-y-auto">
-                <!-- Category list will be populated here -->
-            </div>
-            <form id="category-form" class="flex space-x-2">
-                <input type="text" id="new-category-name" placeholder="New category name" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
-                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Add</button>
-            </form>
-            <div class="flex justify-end mt-6">
-                <button type="button" id="close-category-modal-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Close</button>
-            </div>
-        </div>
-    </div>
+    <!-- Modals (News, Categories, Reply) -->
+    <div id="news-modal" class="modal fixed inset-0 bg-gray-800 bg-opacity-75 items-center justify-center"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-2/3 lg:w-1/2 max-h-screen overflow-y-auto p-8"><h2 id="modal-title" class="text-2xl font-bold mb-4">Add News</h2><form id="news-form"><input type="hidden" id="news-id"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="mb-4"><label for="title" class="block text-gray-700 text-sm font-bold mb-2">Title</label><input type="text" id="title" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"></div><div class="mb-4"><label for="writer_name" class="block text-gray-700 text-sm font-bold mb-2">Writer Name</label><input type="text" id="writer_name" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"></div><div class="mb-4"><label for="category" class="block text-gray-700 text-sm font-bold mb-2">Category</label><select id="category" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"></select></div><div class="mb-4"><label for="publication_date" class="block text-gray-700 text-sm font-bold mb-2">Publication Date</label><input type="date" id="publication_date" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"></div></div><div class="mb-4"><label for="short_description" class="block text-gray-700 text-sm font-bold mb-2">Short Description</label><textarea id="short_description" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"></textarea><button type="button" id="generate-desc-btn" class="mt-2 bg-blue-500 hover:bg-blue-600 text-white text-sm py-1 px-3 rounded">Generate with Gemini</button></div><div class="mb-4"><label for="content" class="block text-gray-700 text-sm font-bold mb-2">Content</label><textarea id="content" rows="10" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"></textarea></div><div class="mb-4"><label for="image_url" class="block text-gray-700 text-sm font-bold mb-2">Image URL</label><input type="url" id="image_url" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"></div><div class="flex justify-end space-x-4"><button type="button" id="cancel-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Cancel</button><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Save</button></div></form></div></div>
+    <div id="category-modal" class="modal fixed inset-0 bg-gray-800 bg-opacity-75 items-center justify-center"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/3 p-8"><h2 class="text-2xl font-bold mb-4">Manage Categories</h2><div id="category-list" class="mb-4 max-h-60 overflow-y-auto"></div><form id="category-form" class="flex space-x-2"><input type="text" id="new-category-name" placeholder="New category name" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"><button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Add</button></form><div class="flex justify-end mt-6"><button type="button" id="close-category-modal-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Close</button></div></div></div>
+    <div id="reply-modal" class="modal fixed inset-0 bg-gray-800 bg-opacity-75 items-center justify-center"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/3 p-8"><h2 class="text-2xl font-bold mb-4">Reply to Comment</h2><form id="reply-form"><input type="hidden" id="reply-comment-id"><div class="mb-4"><label for="reply_text" class="block text-gray-700 text-sm font-bold mb-2">Your Reply</label><textarea id="reply_text" rows="4" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"></textarea></div><div class="flex justify-end space-x-4"><button type="button" id="cancel-reply-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Cancel</button><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Submit Reply</button></div></form></div></div>
 
     <script>
         const SUPABASE_URL = 'https://lbgnjyktvoxpqeoqagca.supabase.co';
@@ -131,224 +64,134 @@
         const GEMINI_API_KEY = 'AIzaSyCiTLSV1s3oMog3jriH_TPIOJshhygTrAc';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // DOM Elements
-        const newsTableBody = document.getElementById('news-table-body');
-        const addNewsBtn = document.getElementById('add-news-btn');
-        const newsModal = document.getElementById('news-modal');
-        const newsForm = document.getElementById('news-form');
-        const cancelBtn = document.getElementById('cancel-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-        const generateDescBtn = document.getElementById('generate-desc-btn');
-        const manageCategoriesBtn = document.getElementById('manage-categories-btn');
-        const categoryModal = document.getElementById('category-modal');
-        const categoryList = document.getElementById('category-list');
-        const categoryForm = document.getElementById('category-form');
-        const closeCategoryModalBtn = document.getElementById('close-category-modal-btn');
-        const categoryDropdown = document.getElementById('category');
+        // --- Tabbing ---
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active', 'border-indigo-500', 'text-indigo-600'));
+                tab.classList.add('active', 'border-indigo-500', 'text-indigo-600');
+                const target = document.getElementById(tab.id.replace('tab-', 'content-'));
+                tabContents.forEach(tc => tc.classList.remove('active'));
+                target.classList.add('active');
+            });
+        });
 
         // --- Category Management ---
-
-        async function loadCategories() {
-            const { data, error } = await supabase.from('categories').select('*').order('name');
-            if (error) {
-                console.error("Error loading categories:", error);
-                return;
-            }
-
-            // Populate category list in management modal
-            categoryList.innerHTML = '';
-            data.forEach(cat => {
-                const catElement = document.createElement('div');
-                catElement.className = 'flex justify-between items-center p-2 border-b';
-                catElement.innerHTML = `
-                    <span>${cat.name}</span>
-                    <button onclick="deleteCategory('${cat.id}')" class="text-red-500 hover:text-red-700 text-sm">Delete</button>
-                `;
-                categoryList.appendChild(catElement);
-            });
-
-            // Populate category dropdown in news form
-            categoryDropdown.innerHTML = '';
-            data.forEach(cat => {
-                const option = document.createElement('option');
-                option.value = cat.name;
-                option.textContent = cat.name;
-                categoryDropdown.appendChild(option);
-            });
-        }
-
-        async function addCategory(name) {
-            if (!name) return;
-            const { error } = await supabase.from('categories').insert([{ name: name }]);
-            if (error) {
-                console.error("Error adding category:", error);
-                alert(`Could not add category. It might already exist.`);
-            } else {
-                document.getElementById('new-category-name').value = '';
-                await loadCategories(); // Refresh list
-            }
-        }
-
-        async function deleteCategory(id) {
-            if (window.confirm('Are you sure you want to delete this category?')) {
-                const { error } = await supabase.from('categories').delete().eq('id', id);
-                if (error) {
-                    console.error("Error deleting category:", error);
-                    alert('Could not delete category.');
-                } else {
-                    await loadCategories(); // Refresh list
-                }
-            }
-        }
+        const categoryModal = document.getElementById('category-modal');
+        async function loadCategories() { /* ... same as before ... */ }
+        async function addCategory(name) { /* ... same as before ... */ }
+        async function deleteCategory(id) { /* ... same as before ... */ }
+        document.getElementById('manage-categories-btn').addEventListener('click', () => categoryModal.classList.add('active'));
+        document.getElementById('close-category-modal-btn').addEventListener('click', () => categoryModal.classList.remove('active'));
+        document.getElementById('category-form').addEventListener('submit', (e) => { e.preventDefault(); addCategory(document.getElementById('new-category-name').value.trim()); });
 
         // --- News Management ---
+        const newsModal = document.getElementById('news-modal');
+        async function loadNews() { /* ... same as before ... */ }
+        function showNewsModal(news = null) { /* ... same as before ... */ }
+        function hideNewsModal() { newsModal.classList.remove('active'); }
+        document.getElementById('add-news-btn').addEventListener('click', () => showNewsModal());
+        document.getElementById('cancel-btn').addEventListener('click', hideNewsModal);
+        document.getElementById('news-form').addEventListener('submit', async (e) => { /* ... same as before ... */ });
+        async function editNews(id) { /* ... same as before ... */ }
+        async function deleteNews(id) { /* ... same as before ... */ }
+        document.getElementById('generate-desc-btn').addEventListener('click', async () => { /* ... same as before ... */ });
 
-        async function loadNews() {
+        // --- Comment Management ---
+        const commentsContainer = document.getElementById('comments-container');
+        const replyModal = document.getElementById('reply-modal');
+        const replyForm = document.getElementById('reply-form');
+
+        async function loadComments() {
             const { data, error } = await supabase
-                .from('news')
-                .select('*')
-                .order('publication_date', { ascending: false });
+                .from('comments')
+                .select(`*, news(title)`)
+                .order('created_at', { ascending: false });
 
-            if (error) {
-                console.error('Error loading news:', error);
+            if (error) { console.error("Error loading comments:", error); return; }
+            
+            commentsContainer.innerHTML = '';
+            if (data.length === 0) {
+                commentsContainer.innerHTML = '<p>No comments yet.</p>';
                 return;
             }
 
-            newsTableBody.innerHTML = '';
-            data.forEach(news => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm"><p class="text-gray-900 whitespace-no-wrap">${news.title}</p></td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                        <span class="relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight">
-                            <span aria-hidden class="absolute inset-0 bg-green-200 opacity-50 rounded-full"></span>
-                            <span class="relative">${news.category || 'N/A'}</span>
-                        </span>
-                    </td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm"><p class="text-gray-900 whitespace-no-wrap">${news.writer_name || 'N/A'}</p></td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm"><p class="text-gray-900 whitespace-no-wrap">${news.publication_date ? new Date(news.publication_date).toLocaleDateString() : 'N/A'}</p></td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                        <button onclick="editNews('${news.id}')" class="text-indigo-600 hover:text-indigo-900 mr-4">Edit</button>
-                        <button onclick="deleteNews('${news.id}')" class="text-red-600 hover:text-red-900">Delete</button>
-                    </td>
+            data.forEach(comment => {
+                const el = document.createElement('div');
+                el.className = 'bg-white p-4 rounded-lg shadow';
+                const commentDate = new Date(comment.created_at).toLocaleString();
+                el.innerHTML = `
+                    <p class="text-gray-800">${comment.comment_text}</p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        By <strong>${comment.user_name}</strong> on ${commentDate}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        Article: <em class="font-semibold">${comment.news.title}</em>
+                    </p>
+                    ${comment.reply_text ? `
+                        <div class="mt-3 ml-4 pl-3 border-l-2 border-indigo-200">
+                            <p class="text-gray-800">${comment.reply_text}</p>
+                            <p class="text-xs text-gray-500 mt-1"><strong>Admin Reply</strong> on ${new Date(comment.replied_at).toLocaleString()}</p>
+                        </div>
+                    ` : `
+                        <button onclick="showReplyModal('${comment.id}')" class="mt-3 bg-indigo-500 text-white text-xs font-bold py-1 px-3 rounded hover:bg-indigo-600">Reply</button>
+                    `}
                 `;
-                newsTableBody.appendChild(row);
+                commentsContainer.appendChild(el);
             });
         }
 
-        function showNewsModal(news = null) {
-            newsForm.reset();
-            document.getElementById('publication_date').value = new Date().toISOString().split('T')[0];
-            if (news) {
-                document.getElementById('modal-title').textContent = 'Edit News';
-                document.getElementById('news-id').value = news.id;
-                document.getElementById('title').value = news.title;
-                document.getElementById('writer_name').value = news.writer_name;
-                document.getElementById('category').value = news.category;
-                document.getElementById('publication_date').value = news.publication_date;
-                document.getElementById('short_description').value = news.short_description;
-                document.getElementById('content').value = news.content;
-                document.getElementById('image_url').value = news.image_url;
-            } else {
-                document.getElementById('modal-title').textContent = 'Add News';
-                document.getElementById('news-id').value = '';
-            }
-            newsModal.classList.add('active');
+        function showReplyModal(commentId) {
+            document.getElementById('reply-comment-id').value = commentId;
+            replyModal.classList.add('active');
         }
 
-        function hideNewsModal() {
-            newsModal.classList.remove('active');
+        function hideReplyModal() {
+            replyForm.reset();
+            replyModal.classList.remove('active');
         }
 
-        newsForm.addEventListener('submit', async (e) => {
+        replyForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const newsData = {
-                title: document.getElementById('title').value,
-                writer_name: document.getElementById('writer_name').value,
-                category: document.getElementById('category').value,
-                publication_date: document.getElementById('publication_date').value,
-                short_description: document.getElementById('short_description').value,
-                content: document.getElementById('content').value,
-                image_url: document.getElementById('image_url').value,
-            };
-            const newsId = document.getElementById('news-id').value;
+            const commentId = document.getElementById('reply-comment-id').value;
+            const replyText = document.getElementById('reply_text').value;
 
-            const { error } = newsId
-                ? await supabase.from('news').update(newsData).eq('id', newsId)
-                : await supabase.from('news').insert([newsData]);
-            
+            const { error } = await supabase.from('comments').update({
+                reply_text: replyText,
+                replied_at: new Date().toISOString()
+            }).eq('id', commentId);
+
             if (error) {
-                console.error('Error saving news:', error);
-                alert('Could not save news.');
+                console.error("Error submitting reply:", error);
+                alert('Could not submit reply.');
             } else {
-                hideNewsModal();
-                await loadNews();
-            }
-        });
-        
-        async function editNews(id) {
-            const { data, error } = await supabase.from('news').select('*').eq('id', id).single();
-            if (error) { console.error('Error fetching news for edit:', error); return; }
-            showNewsModal(data);
-        }
-
-        async function deleteNews(id) {
-            if (window.confirm('Are you sure you want to delete this news article?')) {
-                const { error } = await supabase.from('news').delete().eq('id', id);
-                if (error) { console.error('Error deleting news:', error); alert('Could not delete news.'); } 
-                else { await loadNews(); }
-            }
-        }
-
-        generateDescBtn.addEventListener('click', async () => {
-            const content = document.getElementById('content').value;
-            if (!content) { alert('Please enter some content first.'); return; }
-            
-            generateDescBtn.disabled = true;
-            generateDescBtn.textContent = 'Generating...';
-
-            try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: `Write a short, compelling news summary (about 2-3 sentences) for the following article content:\n\n${content}` }] }] })
-                });
-
-                if (!response.ok) { throw new Error(`API request failed: ${response.status}`); }
-
-                const result = await response.json();
-                const description = result.candidates[0].content.parts[0].text;
-                document.getElementById('short_description').value = description.trim();
-
-            } catch (error) {
-                console.error('Error with Gemini API:', error);
-                alert('Failed to generate description.');
-            } finally {
-                generateDescBtn.disabled = false;
-                generateDescBtn.textContent = 'Generate with Gemini';
+                hideReplyModal();
+                await loadComments();
             }
         });
 
-        // --- Event Listeners ---
-        addNewsBtn.addEventListener('click', () => showNewsModal());
-        cancelBtn.addEventListener('click', hideNewsModal);
-        logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('mnc-admin-auth');
-            window.location.href = './index.html';
-        });
-        manageCategoriesBtn.addEventListener('click', () => categoryModal.classList.add('active'));
-        closeCategoryModalBtn.addEventListener('click', () => categoryModal.classList.remove('active'));
-        categoryForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const newName = document.getElementById('new-category-name').value.trim();
-            addCategory(newName);
-        });
+        document.getElementById('cancel-reply-btn').addEventListener('click', hideReplyModal);
 
         // --- Initial Load ---
         async function initialize() {
             await loadCategories();
-            await loadNews();
+            await Promise.all([loadNews(), loadComments()]);
         }
+        
+        // Re-using functions from other sections, simplified for brevity
+        // Make sure the full function definitions from the previous version are here
+        async function loadCategories() {const { data, error } = await supabase.from('categories').select('*').order('name'); if (error) { console.error("Error loading categories:", error); return; } const categoryList = document.getElementById('category-list'); const categoryDropdown = document.getElementById('category'); categoryList.innerHTML = ''; data.forEach(cat => { const catElement = document.createElement('div'); catElement.className = 'flex justify-between items-center p-2 border-b'; catElement.innerHTML = `<span>${cat.name}</span><button onclick="deleteCategory('${cat.id}')" class="text-red-500 hover:text-red-700 text-sm">Delete</button>`; categoryList.appendChild(catElement); }); categoryDropdown.innerHTML = ''; data.forEach(cat => { const option = document.createElement('option'); option.value = cat.name; option.textContent = cat.name; categoryDropdown.appendChild(option); }); }
+        async function addCategory(name) { if (!name) return; const { error } = await supabase.from('categories').insert([{ name: name }]); if (error) { alert(`Could not add category. It might already exist.`); } else { document.getElementById('new-category-name').value = ''; await loadCategories(); } }
+        async function deleteCategory(id) { if (window.confirm('Are you sure?')) { const { error } = await supabase.from('categories').delete().eq('id', id); if (error) { alert('Could not delete category.'); } else { await loadCategories(); } } }
+        async function loadNews() { const { data, error } = await supabase.from('news').select('*').order('publication_date', { ascending: false }); if (error) { console.error('Error loading news:', error); return; } const newsTableBody = document.getElementById('news-table-body'); newsTableBody.innerHTML = ''; data.forEach(news => { const row = document.createElement('tr'); row.innerHTML = `<td class="px-5 py-5 border-b border-gray-200 bg-white text-sm"><p class="text-gray-900 whitespace-no-wrap">${news.title}</p></td><td class="px-5 py-5 border-b border-gray-200 bg-white text-sm"><span class="relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight"><span aria-hidden class="absolute inset-0 bg-green-200 opacity-50 rounded-full"></span><span class="relative">${news.category || 'N/A'}</span></span></td><td class="px-5 py-5 border-b border-gray-200 bg-white text-sm"><p class="text-gray-900 whitespace-no-wrap">${news.writer_name || 'N/A'}</p></td><td class="px-5 py-5 border-b border-gray-200 bg-white text-sm"><p class="text-gray-900 whitespace-no-wrap">${news.publication_date ? new Date(news.publication_date).toLocaleDateString() : 'N/A'}</p></td><td class="px-5 py-5 border-b border-gray-200 bg-white text-sm"><button onclick="editNews('${news.id}')" class="text-indigo-600 hover:text-indigo-900 mr-4">Edit</button><button onclick="deleteNews('${news.id}')" class="text-red-600 hover:text-red-900">Delete</button></td>`; newsTableBody.appendChild(row); }); }
+        function showNewsModal(news = null) { document.getElementById('news-form').reset(); document.getElementById('publication_date').value = new Date().toISOString().split('T')[0]; if (news) { document.getElementById('modal-title').textContent = 'Edit News'; document.getElementById('news-id').value = news.id; document.getElementById('title').value = news.title; document.getElementById('writer_name').value = news.writer_name; document.getElementById('category').value = news.category; document.getElementById('publication_date').value = news.publication_date; document.getElementById('short_description').value = news.short_description; document.getElementById('content').value = news.content; document.getElementById('image_url').value = news.image_url; } else { document.getElementById('modal-title').textContent = 'Add News'; document.getElementById('news-id').value = ''; } newsModal.classList.add('active'); }
+        document.getElementById('news-form').addEventListener('submit', async (e) => { e.preventDefault(); const newsData = { title: document.getElementById('title').value, writer_name: document.getElementById('writer_name').value, category: document.getElementById('category').value, publication_date: document.getElementById('publication_date').value, short_description: document.getElementById('short_description').value, content: document.getElementById('content').value, image_url: document.getElementById('image_url').value, }; const newsId = document.getElementById('news-id').value; const { error } = newsId ? await supabase.from('news').update(newsData).eq('id', newsId) : await supabase.from('news').insert([newsData]); if (error) { alert('Could not save news.'); } else { hideNewsModal(); await loadNews(); } });
+        async function editNews(id) { const { data, error } = await supabase.from('news').select('*').eq('id', id).single(); if (error) return; showNewsModal(data); }
+        async function deleteNews(id) { if (window.confirm('Are you sure?')) { const { error } = await supabase.from('news').delete().eq('id', id); if (error) { alert('Could not delete news.'); } else { await loadNews(); } } }
+        document.getElementById('generate-desc-btn').addEventListener('click', async () => { const content = document.getElementById('content').value; if (!content) { alert('Please enter some content first.'); return; } const btn = document.getElementById('generate-desc-btn'); btn.disabled = true; btn.textContent = 'Generating...'; try { const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: `Write a short, compelling news summary (about 2-3 sentences) for the following article content:\n\n${content}` }] }] }) }); if (!response.ok) throw new Error(`API request failed: ${response.status}`); const result = await response.json(); document.getElementById('short_description').value = result.candidates[0].content.parts[0].text.trim(); } catch (error) { alert('Failed to generate description.'); } finally { btn.disabled = false; btn.textContent = 'Generate with Gemini'; } });
+        document.getElementById('logout-btn').addEventListener('click', () => { localStorage.removeItem('mnc-admin-auth'); window.location.href = './index.html'; });
+
         initialize();
     </script>
 </body>
